@@ -10,9 +10,13 @@ import java.awt.event.InputEvent;
 import java.awt.PointerInfo.*;
 
 Serial myPort;   // Create object from Serial class
-int posX, posY; // data from msg fields will be stored here  
 int windowHeight = 500;
 int windowWidth = 500;
+int lastVal = 1000;
+int currentVal,
+    posX,
+    meetsThreshold;
+float posXf, mappedPosXf;
 
 void setup() {
   myPort = new Serial(this, Serial.list()[4], 9600);
@@ -20,32 +24,21 @@ void setup() {
   size(windowWidth, windowHeight);
 }
 
-int checkScroll;
-int scrollMe;
-int active, top, bottom;
-int myMouseX, myMouseY;
-
 void draw(){
 }
-
-int lastVal = 1000;
-int currentVal;
 
 void serialEvent(Serial p) {
   String message = myPort.readStringUntil('\n'); // read serial data
   if(message != null) {
     String [] data  = splitTokens(message,",\n"); // Split the comma-separated message
-    //trim(data[2]);
-    println(data[0]);
     if (data[0].equals("Data")){
       posX = Integer.parseInt(data[1]);
       print("X:"); println(posX);
-      posY = Integer.parseInt(data[2]);
-      print("Y:"); println(posY);
-      if( data.length > 3){
-        println("length greater than 3");
-        // numberToBeConverted, minSampleData, maxSampleData, minToConvertTo,maxToConvertTo  
-        map(posX, 25, 120, 0, 100); 
+      if( data.length > 2){
+        posXf = float(posX);
+        mappedPosXf = map(posXf, 150, 740, 0, 180);
+        posX = int(mappedPosXf);
+        println(posX);
         myPort.write(posX);
       }
     }
@@ -53,8 +46,6 @@ void serialEvent(Serial p) {
   
 }
 
-
-int meetsThreshold;
 int downSample(int handSensor) {
     if (handSensor % 3 == 0){
       int meetsThreshold = 1;
